@@ -11,10 +11,10 @@ import java.sql.SQLException;
 public class DBConnection {
 
     // ====== CHANGE THESE TO MATCH YOUR MYSQL ======
-    private static final String URL =
-            "jdbc:mysql://localhost:3306/sparepart_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static final String USER = "root";
-    private static final String PASSWORD = "your_password";
+    private static final String URL = System.getenv().getOrDefault("STARK_DB_URL",
+            "jdbc:mysql://localhost:3306/stark_industry_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
+    private static final String USER = System.getenv().getOrDefault("STARK_DB_USER", "root");
+    private static final String PASSWORD = System.getenv().getOrDefault("STARK_DB_PASSWORD", "");
     // ===============================================
 
     private static DBConnection instance;   // the single instance
@@ -39,7 +39,7 @@ public class DBConnection {
             }
             return connection;
         } catch (SQLException e) {
-            throw new RuntimeException("Cannot connect to the database. Check MySQL is running and the password in DBConnection.java.", e);
+            throw new RuntimeException("Cannot connect to the database. Check MySQL and STARK_DB_URL, STARK_DB_USER, STARK_DB_PASSWORD environment variables.", e);
         }
     }
 }
