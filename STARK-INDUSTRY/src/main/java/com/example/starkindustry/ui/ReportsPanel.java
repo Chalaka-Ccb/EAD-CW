@@ -98,7 +98,9 @@ public class ReportsPanel extends JPanel {
             return;
         }
 
-        runReport(() -> ReportUtil.showRestockReport(txtFromDate(), txtToDate()));
+        final LocalDate start = from;
+        final LocalDate end = to;
+        runReport(() -> ReportUtil.showRestockReport(start, end));
     }
 
     private LocalDate txtFromDate() {
