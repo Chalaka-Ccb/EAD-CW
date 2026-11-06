@@ -184,4 +184,4 @@ INSERT INTO invoice_items (invoice_id, part_id, quantity, unit_price, line_total
 -- ============================================================
 --  END OF SCRIPT
 --  Stark Industry - Drive Safe, Drive Strong.
--- ============================================================                                                                  (4, 9, 2,  1700.00,  3400.00);
+-- ============================================================
