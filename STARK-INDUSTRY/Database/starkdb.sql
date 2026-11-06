@@ -3,7 +3,7 @@
 --  Database Initialization Script
 --  Version : 1.0
 --  Author  : Stark Industry IT Department
---  Note    : Run this script once to set up the database
+--  Note    : DEVELOPMENT RESET ONLY: deletes existing stark_industry_db data
 -- ============================================================
 
 DROP DATABASE IF EXISTS stark_industry_db;
@@ -149,13 +149,14 @@ INSERT INTO parts (part_no, name, category_id, brand, vehicle_model, cost_price,
                                                                                                                            ('CV-7002', 'CV Joint Boot Kit',          7, 'GKN',      'Honda Fit',               1600.00,  2600.00,  10,  5);
 
 -- ---------- Sales Invoices ----------
+-- Demo totals are kept consistent with invoice_items below.
 INSERT INTO sales_invoices (customer_id, user_id, invoice_date, sub_total, discount, total_amount, payment_method) VALUES
                                                                                                                        (2, 1, CURDATE(),                                      11300.00,    0.00, 11300.00, 'Cash'),
                                                                                                                        (3, 2, DATE_SUB(CURDATE(), INTERVAL 3 DAY),            40700.00, 2035.00, 38665.00, 'Credit'),
                                                                                                                        (4, 1, DATE_SUB(CURDATE(), INTERVAL 10 DAY),           51000.00, 2550.00, 48450.00, 'Card'),
                                                                                                                        (5, 3, DATE_SUB(CURDATE(), INTERVAL 20 DAY),           15900.00,    0.00, 15900.00, 'Cash'),
-                                                                                                                       (6, 2, DATE_SUB(CURDATE(), INTERVAL 25 DAY),           74200.00, 3710.00, 70490.00, 'Credit'),
-                                                                                                                       (7, 1, DATE_SUB(CURDATE(), INTERVAL 40 DAY),           28600.00,  500.00, 28100.00, 'Card');
+                                                                                                                       (6, 2, DATE_SUB(CURDATE(), INTERVAL 25 DAY),           76800.00, 3840.00, 72960.00, 'Credit'),
+                                                                                                                       (7, 1, DATE_SUB(CURDATE(), INTERVAL 40 DAY),           43600.00,  500.00, 43100.00, 'Card');
 
 -- ---------- Invoice Line Items ----------
 INSERT INTO invoice_items (invoice_id, part_id, quantity, unit_price, line_total) VALUES
