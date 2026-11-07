@@ -101,7 +101,7 @@ CREATE TABLE invoice_items (
 
 -- ---------- Staff Accounts ----------
 INSERT INTO users (username, password, full_name) VALUES
-                                                      ('admin',      'admin@123',   'Nimal Rajapaksha'),
+                                                      ('admin',      'admin@123',   'Chalaka Chamikara'),
                                                       ('kasun.s',    'kasun@456',   'Kasun Silva'),
                                                       ('dilani.m',   'dilani@789',  'Dilani Mendis');
 
