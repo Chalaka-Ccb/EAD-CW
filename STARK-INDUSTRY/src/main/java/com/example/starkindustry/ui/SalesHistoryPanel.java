@@ -18,7 +18,7 @@ public class SalesHistoryPanel extends JPanel {
         public boolean isCellEditable(int r,int c){return false;}
     };
     private final DefaultTableModel lines=new DefaultTableModel(
-        new String[]{"Item ID","Part No","Part","Sold","Unit Price","Returned"},0){
+        new String[]{"Item ID","Part No","Part","Sold","Unit Price","Returned","Remaining","Status"},0){
         public boolean isCellEditable(int r,int c){return false;}
     };
     private final DefaultTableModel returns=new DefaultTableModel(
@@ -71,7 +71,11 @@ public class SalesHistoryPanel extends JPanel {
         int id=(Integer)invoices.getValueAt(invoiceTable.convertRowIndexToModel(row),0);
         try{
             lines.setRowCount(0);returns.setRowCount(0);
-            for(Object[] r:dao.items(id))lines.addRow(r);
+            for(Object[] r:dao.items(id)){
+                int sold=(Integer)r[3], returned=(Integer)r[5], remaining=sold-returned;
+                String status=remaining==0?"Fully Returned":returned>0?"Partially Returned":"Not Returned";
+                lines.addRow(new Object[]{r[0],r[1],r[2],sold,r[4],returned,remaining,status});
+            }
             for(Object[] r:dao.returns(id))returns.addRow(r);
             info.setText("Invoice #"+id+" | "+lines.getRowCount()+" lines | "+returns.getRowCount()+" returns");
         }catch(RuntimeException ex){error(ex.getMessage());}
@@ -84,8 +88,8 @@ public class SalesHistoryPanel extends JPanel {
         if(itemRow<0){error("Select an item under Invoice Items first.");return;}
         int modelRow=itemTable.convertRowIndexToModel(itemRow);
         int itemId=(Integer)lines.getValueAt(modelRow,0);
-        int available=(Integer)lines.getValueAt(modelRow,3)-(Integer)lines.getValueAt(modelRow,5);
-        if(available<=0){error("All units of this item have already been returned.");return;}
+        int available=(Integer)lines.getValueAt(modelRow,6);
+        if(available<=0){error("This item is marked Fully Returned. No additional returns are allowed.");return;}
         String input=JOptionPane.showInputDialog(this,"Quantity to return (maximum "+available+")","1");
         if(input==null)return;
         int qty;
