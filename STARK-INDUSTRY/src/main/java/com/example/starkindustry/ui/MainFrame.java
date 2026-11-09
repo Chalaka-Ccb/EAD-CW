@@ -15,10 +15,12 @@
 //    private final InvoicePanel invoicePanel;
 //    private final PartPanel partPanel = new PartPanel();
 //    private final CustomerPanel customerPanel = new CustomerPanel();
+    private final SalesHistoryPanel salesHistoryPanel;
 //
 //    public MainFrame(User loggedUser) {
 //        this.loggedUser = loggedUser;
 //        this.invoicePanel = new InvoicePanel(loggedUser);
+        this.salesHistoryPanel = new SalesHistoryPanel(loggedUser);
 //
 //        setTitle("Spare Part Shop - Sales System");
 //        setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -60,6 +62,7 @@
 //
 //        side.add(menuButton("Dashboard", "DASHBOARD"));
 //        side.add(menuButton("New Invoice", "INVOICE"));
+        side.add(menuButton("Sales History & Returns", "HISTORY"));
 //        side.add(menuButton("Parts", "PARTS"));
 //        side.add(menuButton("Customers", "CUSTOMERS"));
 //        side.add(menuButton("Reports", "REPORTS"));
@@ -90,6 +93,7 @@
 //    private JPanel buildContent() {
 //        content.add(dashboardPanel, "DASHBOARD");
 //        content.add(invoicePanel, "INVOICE");
+        content.add(salesHistoryPanel, "HISTORY");
 //        content.add(partPanel, "PARTS");
 //        content.add(customerPanel, "CUSTOMERS");
 //        content.add(placeholder("Reports (later)"), "REPORTS");
@@ -249,6 +253,9 @@ public class MainFrame extends JFrame {
                 break;
             case "PARTS":
                 partPanel.refresh();
+                break;
+            case "HISTORY":
+                salesHistoryPanel.refresh();
                 break;
             default:
                 break;
