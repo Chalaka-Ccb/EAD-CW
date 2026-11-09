@@ -12,6 +12,9 @@ public class ReportsPanel extends JPanel {
 
     private final JTextField txtFrom = new JTextField(LocalDate.now().minusDays(30).toString(), 10);
     private final JTextField txtTo = new JTextField(LocalDate.now().toString(), 10);
+    private final JTextField txtSalesFrom = new JTextField(LocalDate.now().withDayOfMonth(1).toString(), 10);
+    private final JTextField txtSalesTo = new JTextField(LocalDate.now().toString(), 10);
+    private final JComboBox<String> cmbSalesGroup = new JComboBox<>(new String[]{"Month", "Customer", "Product"});
     private final JTextField txtInvoiceNo = new JTextField(8);
 
     public ReportsPanel() {
@@ -28,6 +31,8 @@ public class ReportsPanel extends JPanel {
         cards.add(buildRestockCard());
         cards.add(Box.createVerticalStrut(20));
         cards.add(buildInvoiceCard());
+        cards.add(Box.createVerticalStrut(20));
+        cards.add(buildSalesAnalysisCard());
         add(cards, BorderLayout.CENTER);
     }
 
@@ -72,6 +77,40 @@ public class ReportsPanel extends JPanel {
         card.add(info, BorderLayout.NORTH);
         card.add(row, BorderLayout.CENTER);
         return card;
+    }
+
+    private JPanel buildSalesAnalysisCard() {
+        JPanel card = new JPanel(new BorderLayout(0, 8));
+        card.setBorder(BorderFactory.createTitledBorder("Sales Analysis Report"));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 135));
+        JLabel info = new JLabel("Compare gross sales, refunds and net sales by month, customer or product.");
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        JButton generate = new JButton("Generate Sales Analysis");
+        row.add(new JLabel("From")); row.add(txtSalesFrom);
+        row.add(new JLabel("To")); row.add(txtSalesTo);
+        row.add(new JLabel("Group by")); row.add(cmbSalesGroup); row.add(generate);
+        generate.addActionListener(e -> openSalesAnalysis());
+        card.add(info, BorderLayout.NORTH);
+        card.add(row, BorderLayout.CENTER);
+        return card;
+    }
+
+    private void openSalesAnalysis() {
+        LocalDate from, to;
+        try {
+            from = LocalDate.parse(txtSalesFrom.getText().trim());
+            to = LocalDate.parse(txtSalesTo.getText().trim());
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Dates must use yyyy-mm-dd format.", "Invalid dates", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (from.isAfter(to)) {
+            JOptionPane.showMessageDialog(this, "From date cannot be after To date.", "Invalid dates", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String group = (String) cmbSalesGroup.getSelectedItem();
+        runReport(() -> ReportUtil.showSalesAnalysis(from, to, group));
     }
 
     // ================= actions =================
