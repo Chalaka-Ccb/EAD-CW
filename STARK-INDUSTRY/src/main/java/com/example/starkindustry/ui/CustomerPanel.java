@@ -255,6 +255,8 @@ public class CustomerPanel extends JPanel {
         } else if (!phone.matches("\\d{10}")) {
             errors.append("- Phone must be exactly 10 digits (e.g. 0771234567)\n");
         }
+        if (email.length() > 100) { errors.append("- Email can have at most 100 characters\\n"); }
+        if (address.length() > 200) { errors.append("- Address can have at most 200 characters\\n"); }
         if (!email.isEmpty() && !email.matches("^[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+$")) {
             errors.append("- Email format is not valid\n");
         }
