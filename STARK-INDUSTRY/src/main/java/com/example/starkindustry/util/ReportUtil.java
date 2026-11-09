@@ -32,6 +32,21 @@ public class ReportUtil {
         show("/reports/InvoiceReport.jrxml", params, "Invoice #" + invoiceId);
     }
 
+    /** Sales analysis grouped by month, customer or product; returns are reported separately. */
+    public static void showSalesAnalysis(LocalDate from, LocalDate to, String groupBy) {
+        if (from == null || to == null || from.isAfter(to)) {
+            throw new IllegalArgumentException("Choose a valid date range.");
+        }
+        if (!"Month".equals(groupBy) && !"Customer".equals(groupBy) && !"Product".equals(groupBy)) {
+            throw new IllegalArgumentException("Invalid sales grouping.");
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("FROM_DATE", java.sql.Date.valueOf(from));
+        params.put("TO_DATE", java.sql.Date.valueOf(to));
+        params.put("GROUP_BY", groupBy);
+        show("/reports/SalesAnalysisReport.jrxml", params, "Sales Analysis - " + groupBy);
+    }
+
     private static void show(String reportFile, Map<String, Object> params, String windowTitle) {
         try (InputStream in = ReportUtil.class.getResourceAsStream(reportFile)) {
             if (in == null) {
