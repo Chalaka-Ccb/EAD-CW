@@ -304,6 +304,9 @@ public class PartPanel extends JPanel {
         if (category == null) {
             errors.append("- Category is required\n");
         }
+        if (name.length() > 100) { errors.append("- Name can have at most 100 characters\\n"); }
+        if (brand.length() > 50) { errors.append("- Brand can have at most 50 characters\\n"); }
+        if (vehicle.length() > 100) { errors.append("- Vehicle model can have at most 100 characters\\n"); }
         if (brand.isEmpty()) {
             errors.append("- Brand is required\n");
         }
@@ -315,7 +318,7 @@ public class PartPanel extends JPanel {
 
         try {
             cost = Double.parseDouble(txtCost.getText().trim());
-            if (cost < 0) {
+            if (!Double.isFinite(cost) || cost < 0) {
                 errors.append("- Cost price cannot be negative\n");
             }
         } catch (NumberFormatException e) {
@@ -323,7 +326,7 @@ public class PartPanel extends JPanel {
         }
         try {
             price = Double.parseDouble(txtPrice.getText().trim());
-            if (price < 0) {
+            if (!Double.isFinite(price) || price < 0) {
                 errors.append("- Unit price cannot be negative\n");
             }
         } catch (NumberFormatException e) {
