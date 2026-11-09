@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SalesAnalysisReport" pageWidth="920" pageHeight="595" orientation="Landscape" columnWidth="842" leftMargin="39" rightMargin="39" topMargin="28" bottomMargin="28" whenNoDataType="NoPages">
+<parameter name="FROM_DATE" class="java.sql.Date"/>
+<parameter name="TO_DATE" class="java.sql.Date"/>
+<parameter name="GROUP_BY" class="java.lang.String"/>
+<queryString><![CDATA[SELECT t.group_label AS group_label,
+ COUNT(DISTINCT t.invoice_id) AS invoice_count,
+ SUM(t.sold_qty) AS units_sold,
+ SUM(t.returned_qty) AS units_returned,
+ SUM(t.gross_sales) AS gross_sales,
+ SUM(t.discount_allocated) AS discounts,
+ SUM(t.refund_amount) AS refunds,
+ SUM(t.gross_sales - t.discount_allocated - t.refund_amount) AS net_sales
+FROM (
+ SELECT s.invoice_id,
+ CASE WHEN $P{GROUP_BY} = 'Month' THEN DATE_FORMAT(s.invoice_date,'%Y-%m')
+      WHEN $P{GROUP_BY} = 'Customer' THEN CONCAT(c.name,' (#',c.customer_id,')')
+      ELSE CONCAT(p.part_no,' - ',p.name) END AS group_label,
+ i.quantity AS sold_qty,
+ COALESCE(r.returned_qty,0) AS returned_qty,
+ i.line_total AS gross_sales,
+ CASE WHEN s.sub_total = 0 THEN 0 ELSE i.line_total * s.discount / s.sub_total END AS discount_allocated,
+ COALESCE(r.refund_amount,0) AS refund_amount
+ FROM sales_invoices s
+ JOIN customers c ON c.customer_id=s.customer_id
+ JOIN invoice_items i ON i.invoice_id=s.invoice_id
+ JOIN parts p ON p.part_id=i.part_id
+ LEFT JOIN (
+   SELECT item_id, SUM(quantity) AS returned_qty, SUM(refund_amount) AS refund_amount
+   FROM sales_returns GROUP BY item_id
+ ) r ON r.item_id=i.item_id
+ WHERE s.invoice_date BETWEEN $P{FROM_DATE} AND $P{TO_DATE}
+) t
+GROUP BY t.group_label ORDER BY net_sales DESC, t.group_label]]></queryString>
+<field name="group_label" class="java.lang.String"/>
+<field name="invoice_count" class="java.lang.Long"/>
+<field name="units_sold" class="java.math.BigDecimal"/>
+<field name="units_returned" class="java.math.BigDecimal"/>
+<field name="gross_sales" class="java.math.BigDecimal"/>
+<field name="discounts" class="java.math.BigDecimal"/>
+<field name="refunds" class="java.math.BigDecimal"/>
+<field name="net_sales" class="java.math.BigDecimal"/>
+<variable name="totalGross" class="java.math.BigDecimal" calculation="Sum"><variableExpression><![CDATA[$F{gross_sales}]]></variableExpression></variable>
+<variable name="totalDiscount" class="java.math.BigDecimal" calculation="Sum"><variableExpression><![CDATA[$F{discounts}]]></variableExpression></variable>
+<variable name="totalRefunds" class="java.math.BigDecimal" calculation="Sum"><variableExpression><![CDATA[$F{refunds}]]></variableExpression></variable>
+<variable name="totalNet" class="java.math.BigDecimal" calculation="Sum"><variableExpression><![CDATA[$F{net_sales}]]></variableExpression></variable>
+<title><band height="80">
+<staticText><reportElement x="0" y="0" width="840" height="28"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[STARK INDUSTRY | Sales Analysis]]></text></staticText>
+<textField><reportElement x="0" y="32" width="820" height="22"/><textFieldExpression><![CDATA["Grouped by: "+$P{GROUP_BY}+"  |  "+$P{FROM_DATE}+" to "+$P{TO_DATE}]]></textFieldExpression></textField>
+<staticText><reportElement x="0" y="57" width="840" height="20"/><text><![CDATA[Refunds are attributed to the original invoice period. Net = gross - discounts - refunds.]]></text></staticText>
+</band></title>
+<columnHeader><band height="28"><staticText><reportElement x="0" y="2" width="225" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[Group]]></text></staticText><staticText><reportElement x="225" y="2" width="65" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[Invoices]]></text></staticText><staticText><reportElement x="290" y="2" width="65" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[Sold]]></text></staticText><staticText><reportElement x="355" y="2" width="70" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[Returned]]></text></staticText><staticText><reportElement x="425" y="2" width="100" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[Gross (Rs.)]]></text></staticText><staticText><reportElement x="525" y="2" width="105" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[Discount (Rs.)]]></text></staticText><staticText><reportElement x="630" y="2" width="105" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[Refunds (Rs.)]]></text></staticText><staticText><reportElement x="735" y="2" width="107" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[Net (Rs.)]]></text></staticText></band></columnHeader>
+<detail><band height="24"><textField><reportElement x="0" y="2" width="225" height="20"/><textFieldExpression><![CDATA[$F{group_label}]]></textFieldExpression></textField><textField><reportElement x="225" y="2" width="65" height="20"/><textFieldExpression><![CDATA[$F{invoice_count}]]></textFieldExpression></textField><textField><reportElement x="290" y="2" width="65" height="20"/><textFieldExpression><![CDATA[$F{units_sold}]]></textFieldExpression></textField><textField><reportElement x="355" y="2" width="70" height="20"/><textFieldExpression><![CDATA[$F{units_returned}]]></textFieldExpression></textField><textField pattern="#,##0.00"><reportElement x="425" y="2" width="100" height="20"/><textFieldExpression><![CDATA[$F{gross_sales}]]></textFieldExpression></textField><textField pattern="#,##0.00"><reportElement x="525" y="2" width="105" height="20"/><textFieldExpression><![CDATA[$F{discounts}]]></textFieldExpression></textField><textField pattern="#,##0.00"><reportElement x="630" y="2" width="105" height="20"/><textFieldExpression><![CDATA[$F{refunds}]]></textFieldExpression></textField><textField pattern="#,##0.00"><reportElement x="735" y="2" width="107" height="20"/><textFieldExpression><![CDATA[$F{net_sales}]]></textFieldExpression></textField></band></detail>
+<pageFooter><band height="22"><textField><reportElement x="735" y="0" width="107" height="18"/><textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}]]></textFieldExpression></textField></band></pageFooter>
+<summary><band height="75">
+<staticText><reportElement x="0" y="0" width="130" height="22"/><textElement><font isBold="true" size="9"/></textElement><text><![CDATA[TOTALS]]></text></staticText>
+<textField><reportElement x="135" y="0" width="220" height="22"/><textFieldExpression><![CDATA["Gross: Rs. "+new java.text.DecimalFormat("#,##0.00").format($V{totalGross})]]></textFieldExpression></textField>
+<textField><reportElement x="360" y="0" width="230" height="22"/><textFieldExpression><![CDATA["Discounts: Rs. "+new java.text.DecimalFormat("#,##0.00").format($V{totalDiscount})]]></textFieldExpression></textField>
+<textField><reportElement x="595" y="0" width="240" height="22"/><textFieldExpression><![CDATA["Refunds: Rs. "+new java.text.DecimalFormat("#,##0.00").format($V{totalRefunds})]]></textFieldExpression></textField>
+<textField><reportElement x="0" y="28" width="500" height="22"/><textFieldExpression><![CDATA["NET SALES: Rs. "+new java.text.DecimalFormat("#,##0.00").format($V{totalNet})]]></textFieldExpression></textField>
+<staticText><reportElement x="0" y="53" width="840" height="20"/><text><![CDATA[Product and customer figures allocate invoice-level discounts proportionally across line items.]]></text></staticText>
+</band></summary>
+</jasperReport>
