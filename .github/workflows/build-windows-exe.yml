@@ -1,0 +1,90 @@
+name: Build STARK INDUSTRY Windows EXE
+
+on:
+  push:
+    branches:
+      - advanced-coursework-features
+    paths:
+      - "STARK-INDUSTRY/**"
+      - ".github/workflows/build-windows-exe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Build runnable application JAR
+        working-directory: STARK-INDUSTRY
+        shell: cmd
+        run: mvnw.cmd -B clean package
+
+      - name: Create Windows application image with bundled Java runtime
+        working-directory: STARK-INDUSTRY
+        shell: pwsh
+        run: |
+          if (!(Test-Path "target/STARK-INDUSTRY-1.0.jar")) {
+            throw "Maven did not create target/STARK-INDUSTRY-1.0.jar"
+          }
+          jpackage --type app-image --name "STARK INDUSTRY" --app-version "1.0.0" --vendor "STARK INDUSTRY" --input "target" --main-jar "STARK-INDUSTRY-1.0.jar" --main-class "com.example.starkindustry.Main" --dest "dist"
+
+      - name: Add database migration and deployment instructions
+        working-directory: STARK-INDUSTRY
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "dist/STARK INDUSTRY/Database" | Out-Null
+          Copy-Item "Database/add_sales_returns.sql" "dist/STARK INDUSTRY/Database/"
+          @'
+          STARK INDUSTRY - WINDOWS APPLICATION
+
+          1. Extract this ZIP file completely.
+          2. Start MySQL using XAMPP (or your configured MySQL server).
+          3. Make sure the existing stark_industry_db database is available.
+          4. If the sales_returns table has not been created yet, run
+             Database/add_sales_returns.sql once in phpMyAdmin.
+          5. Double-click STARK INDUSTRY.exe to launch the application.
+
+          DATABASE CONNECTION
+          Default URL: jdbc:mysql://localhost:3306/stark_industry_db
+          User: root
+          Password: empty
+
+          If your MySQL credentials differ, set these Windows environment
+          variables before launching:
+          STARK_DB_URL, STARK_DB_USER, STARK_DB_PASSWORD.
+
+          IMPORTANT
+          This package includes a Java runtime, so a separate Java install
+          is not required. MySQL is still required and is not bundled.
+          Do NOT import Database/starkdb.sql over an existing database:
+          that script drops and recreates the database.
+
+          This is an unsigned coursework build. Windows SmartScreen may show
+          a warning because the application is not code-signed.
+          '@ | Set-Content "dist/STARK INDUSTRY/README-DEPLOYMENT.txt" -Encoding UTF8
+
+      - name: Zip Windows application package
+        working-directory: STARK-INDUSTRY
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist/STARK INDUSTRY" -DestinationPath "STARK-INDUSTRY-Windows-x64.zip" -Force
+
+      - name: Upload downloadable Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: STARK-INDUSTRY-Windows-x64
+          path: STARK-INDUSTRY/STARK-INDUSTRY-Windows-x64.zip
+          if-no-files-found: error
+          retention-days: 30
